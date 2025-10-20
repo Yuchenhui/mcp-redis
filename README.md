@@ -26,6 +26,15 @@ The Redis MCP Server is a **natural language interface** designed for agentic ap
 - [Overview](#overview)
 - [Features](#features)
 - [Tools](#tools)
+- [Lite Mode](#lite-mode)
+  - [Features](#features-1)
+  - [Available Tools in Lite Mode](#available-tools-in-lite-mode)
+  - [Enabling Lite Mode](#enabling-lite-mode)
+  - [Usage Examples](#usage-examples)
+  - [Tool Comparison](#tool-comparison)
+  - [When to Use Lite Mode](#when-to-use-lite-mode)
+  - [Valid Environment Variable Values](#valid-environment-variable-values)
+  - [Performance Considerations](#performance-considerations)
 - [Installation](#installation)
   - [From PyPI (recommended)](#from-pypi-recommended)
   - [Testing the PyPI package](#testing-the-pypi-package)
@@ -55,6 +64,7 @@ The Redis MCP Server is a **natural language interface** designed for agentic ap
 - **Seamless MCP Integration**: Works with any **MCP client** for smooth communication.
 - **Full Redis Support**: Handles **hashes, lists, sets, sorted sets, streams**, and more.
 - **Search & Filtering**: Supports efficient data retrieval and searching in Redis.
+- **Lite Mode**: Lightweight mode for maximum flexibility with generic Redis command execution.
 - **Scalable & Lightweight**: Designed for **high-performance** data operations.
 - The Redis MCP Server supports the `stdio` [transport](https://modelcontextprotocol.io/docs/concepts/transports#standard-input%2Foutput-stdio). Support to the `stremable-http` transport will be added in the future.
 
@@ -75,6 +85,147 @@ Additional tools.
 
 - `query engine` tools to manage vector indexes and perform vector search
 - `server management` tool to retrieve information about the database
+- `redis execute` tools for generic Redis command execution (available in Lite Mode)
+
+## Lite Mode
+
+Lite Mode is a lightweight operating mode that provides maximum flexibility by offering only generic Redis command execution tools. When enabled, all specialized data-type tools are disabled, and you get access to universal Redis command tools that can execute any Redis command.
+
+### Features
+
+- **Disabled by Default**: Lite Mode is disabled by default (`LITE_MODE=false`)
+- **Minimal Tool Set**: Only 2 generic command execution tools instead of 11+ specialized tools
+- **Maximum Flexibility**: Execute any Redis command without being limited to predefined tools
+- **Environment Controlled**: Simply set an environment variable to enable/disable
+- **Restart Required**: Changes take effect after server restart
+
+### Available Tools in Lite Mode
+
+When Lite Mode is enabled, you get access to these two powerful tools:
+
+1. **`redis_execute_command`**: Execute Redis commands with structured arguments
+   ```json
+   {
+     "command": "SET",
+     "args": ["mykey", "myvalue"]
+   }
+   ```
+
+2. **`redis_execute_raw_command`**: Execute Redis commands from string format
+   ```json
+   {
+     "command_str": "SET mykey myvalue"
+   }
+   ```
+
+### Enabling Lite Mode
+
+#### Using Environment Variables
+
+```bash
+# Enable Lite Mode
+export LITE_MODE=true
+
+# Disable Lite Mode (default)
+export LITE_MODE=false
+```
+
+#### With uvx
+
+```bash
+# Enable Lite Mode with uvx
+LITE_MODE=true uvx redis-mcp-server --url redis://localhost:6379/0
+
+# Or with environment file
+echo "LITE_MODE=true" > .env
+uvx --env-file .env redis-mcp-server --url redis://localhost:6379/0
+```
+
+#### In MCP Client Configuration
+
+```json
+{
+  "mcpServers": {
+    "redis": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "redis-mcp-server@latest",
+        "redis-mcp-server",
+        "--url",
+        "redis://localhost:6379/0"
+      ],
+      "env": {
+        "LITE_MODE": "true"
+      }
+    }
+  }
+}
+```
+
+### Usage Examples
+
+#### Basic Operations
+
+```bash
+# String operations
+redis_execute_command("SET", ["key", "value"])
+redis_execute_command("GET", ["key"])
+
+# Hash operations
+redis_execute_command("HSET", ["myhash", "field", "value"])
+redis_execute_command("HGETALL", ["myhash"])
+
+# List operations
+redis_execute_command("LPUSH", ["mylist", "item1", "item2"])
+redis_execute_command("LRANGE", ["mylist", 0, -1])
+
+# Set operations
+redis_execute_command("SADD", ["myset", "member1", "member2"])
+redis_execute_command("SMEMBERS", ["myset"])
+```
+
+#### Advanced Operations
+
+```bash
+# Sorted sets
+redis_execute_command("ZADD", ["myscores", 100, "player1", 200, "player2"])
+redis_execute_command("ZRANGE", ["myscores", 0, -1, "WITHSCORES"])
+
+# JSON operations (requires RedisJSON module)
+redis_execute_command("JSON.SET", ["mydoc", ".", "{\"name\": \"test\"}"])
+redis_execute_command("JSON.GET", ["mydoc", "."])
+
+# Stream operations
+redis_execute_command("XADD", ["mystream", "*", "field1", "value1", "field2", "value2"])
+redis_execute_command("XRANGE", ["mystream", "-", "+"])
+```
+
+### Tool Comparison
+
+| Mode | Available Tools | Tool Type | Use Case |
+|------|----------------|-----------|----------|
+| **Normal Mode** | 11+ | Specialized data-type tools | User-friendly, guided operations |
+| **Lite Mode** | 2 | Generic command execution | Maximum flexibility, any Redis command |
+
+### When to Use Lite Mode
+
+- **Advanced Users**: When you need access to specific Redis commands not covered by standard tools
+- **Complex Operations**: For multi-step operations that require exact command control
+- **Testing & Development**: When testing new Redis features or commands
+- **Minimal Setup**: When you want a simpler, more lightweight toolset
+- **Custom Workflows**: When building custom automation that needs precise Redis command control
+
+### Valid Environment Variable Values
+
+**True Values**: `true`, `t`, `1`, `TRUE`, `T`
+**False Values**: `false`, `f`, `0`, `FALSE`, `F`, or any other value
+
+### Performance Considerations
+
+- **Faster Startup**: Lite Mode loads fewer tools, resulting in faster server startup
+- **Lower Memory Usage**: Reduced tool footprint means lower memory consumption
+- **Simplified Interface**: Fewer tools mean simpler tool discovery and selection
 
 ## Installation
 
@@ -348,6 +499,7 @@ If desired, you can use environment variables. Defaults are provided for all var
 | `REDIS_SSL_CERT_REQS`| Whether the client should verify the server's certificate | `"required"`  |
 | `REDIS_SSL_CA_CERTS` | Path to the trusted CA certificates file                  | None          |
 | `REDIS_CLUSTER_MODE` | Enable Redis Cluster mode                                 | `False`       |
+| `LITE_MODE`          | Enable Lite Mode for generic Redis command execution      | `False`       |
 
 
 There are several ways to set environment variables:
@@ -408,7 +560,8 @@ In MCP client configs that support env, add it alongside your Redis settings. Fo
       "env": {
         "REDIS_HOST": "localhost",
         "REDIS_PORT": "6379",
-        "MCP_REDIS_LOG_LEVEL": "INFO"
+        "MCP_REDIS_LOG_LEVEL": "INFO",
+        "LITE_MODE": "false"
       }
     }
   }

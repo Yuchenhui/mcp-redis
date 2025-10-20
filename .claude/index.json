@@ -1,0 +1,154 @@
+{
+  "scan_timestamp": "2025-10-20T15:14:26",
+  "project_name": "redis-mcp-server",
+  "project_version": "0.3.4",
+  "scan_coverage": {
+    "total_files": 38,
+    "scanned_files": 35,
+    "coverage_percentage": 92.1,
+    "ignored_files": 3
+  },
+  "modules": [
+    {
+      "path": "src/common",
+      "type": "core_infrastructure",
+      "entry_point": "src/common/server.py",
+      "description": "MCP服务器核心基础设施",
+      "interfaces": [
+        "FastMCP server initialization",
+        "Redis connection management",
+        "Configuration parsing",
+        "Logging utilities"
+      ],
+      "test_coverage": true,
+      "scan_status": "complete"
+    },
+    {
+      "path": "src/tools",
+      "type": "feature_modules",
+      "entry_point": "Multiple tool modules",
+      "description": "Redis操作工具集，按数据类型分组",
+      "interfaces": [
+        "String operations (set, get, expire)",
+        "Hash operations (hset, hget, hgetall)",
+        "List operations (lpush, rpop, lrange)",
+        "Set operations (sadd, smembers, sinter)",
+        "Sorted Set operations (zadd, zrange, zrank)",
+        "Stream operations (xadd, xread, xgroup)",
+        "JSON operations (json.set, json.get)",
+        "Pub/Sub operations (publish, subscribe)",
+        "Vector search (FT.CREATE, FT.SEARCH)",
+        "Server management (info, dbsize, client_list)"
+      ],
+      "test_coverage": true,
+      "scan_status": "complete"
+    },
+    {
+      "path": "tests",
+      "type": "test_suite",
+      "entry_point": "tests/conftest.py",
+      "description": "完整的测试套件，包含单元测试和集成测试",
+      "interfaces": [
+        "Mock Redis connections",
+        "Test fixtures",
+        "Error scenario testing",
+        "Async test support"
+      ],
+      "test_coverage": true,
+      "scan_status": "complete"
+    }
+  ],
+  "architecture_patterns": [
+    {
+      "pattern": "Model Context Protocol (MCP) Server",
+      "implementation": "FastMCP framework with @mcp.tool() decorators",
+      "location": "src/common/server.py, src/tools/*.py"
+    },
+    {
+      "pattern": "Singleton Connection Manager",
+      "implementation": "RedisConnectionManager with single instance",
+      "location": "src/common/connection.py"
+    },
+    {
+      "pattern": "Dynamic Tool Loading",
+      "implementation": "pkgutil.iter_modules for automatic tool discovery",
+      "location": "src/common/server.py"
+    },
+    {
+      "pattern": "Configuration Hierarchy",
+      "implementation": "CLI args > env vars > defaults",
+      "location": "src/common/config.py"
+    }
+  ],
+  "technology_stack": {
+    "language": "Python 3.10+",
+    "framework": "FastMCP (Model Context Protocol)",
+    "database": "Redis (single instance and cluster)",
+    "key_dependencies": [
+      "mcp[cli]>=1.9.4",
+      "redis>=6.0.0",
+      "numpy>=2.2.4",
+      "click>=8.0.0",
+      "dotenv>=0.9.9"
+    ],
+    "dev_dependencies": [
+      "pytest>=8.4.1",
+      "pytest-asyncio>=1.1.0",
+      "pytest-cov>=6.2.1",
+      "black>=25.1.0",
+      "ruff>=0.12.5",
+      "mypy>=1.17.0"
+    ]
+  },
+  "scan_metadata": {
+    "scan_duration": "medium",
+    "scan_intensity": "modular_priority",
+    "truncated": false,
+    "ignore_rules_used": [
+      "node_modules/**",
+      ".git/**",
+      ".github/**",
+      "dist/**",
+      "build/**",
+      ".next/**",
+      "__pycache__/**",
+      "*.lock",
+      "*.log",
+      "*.bin",
+      "*.pdf",
+      "*.png",
+      "*.jpg",
+      "*.jpeg",
+      "*.gif",
+      "*.mp4",
+      "*.zip",
+      "*.tar",
+      "*.gz"
+    ],
+    "files_scanned": [
+      "pyproject.toml",
+      "README.md",
+      "src/main.py",
+      "src/common/server.py",
+      "src/common/config.py",
+      "src/common/connection.py",
+      "src/common/logging_utils.py",
+      "src/version.py",
+      "src/tools/*.py (11 files)",
+      "tests/*.py (6 files)",
+      "tests/tools/*.py (10 files)"
+    ],
+    "next_scan_recommendations": [
+      "No additional deep scanning required - project is well-structured and comprehensively covered",
+      "Consider reviewing Dockerfile and deployment configurations if needed",
+      "Check examples directory if it exists for usage patterns"
+    ]
+  },
+  "coverage_gaps": [],
+  "quality_metrics": {
+    "test_coverage_requirement": "80%",
+    "code_style_tools": ["black", "ruff", "mypy"],
+    "security_tools": ["bandit", "safety"],
+    "ci_cd": "GitHub Actions"
+  }
+}

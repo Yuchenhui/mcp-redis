@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Server configuration
+SERVER_CFG = {
+    "lite_mode": os.getenv("LITE_MODE", "false").lower() in ("true", "1", "t"),
+}
+
 REDIS_CFG = {
     "host": os.getenv("REDIS_HOST", "127.0.0.1"),
     "port": int(os.getenv("REDIS_PORT", 6379)),
